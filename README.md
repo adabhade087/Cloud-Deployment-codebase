@@ -125,7 +125,7 @@ Provide developers and DevOps engineers with a centralized dashboard to manage:
           │                    │                    │
           ▼                    ▼                    ▼
    ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-   │   GitHub    │      │  PostgreSQL │      │   Jenkins   │
+   │   GitHub    │      │    MYSQL    │      │   Jenkins   │
    └─────────────┘      └─────────────┘      └──────┬──────┘
                                                      │
                                                      ▼
@@ -159,7 +159,7 @@ Provide developers and DevOps engineers with a centralized dashboard to manage:
 | Frontend               | React               |
 | Styling                | Tailwind CSS        |
 | Backend                | Node.js, Express.js |
-| Database               | PostgreSQL          |
+| Database               | MYSQL               |
 | Version Control        | Git, GitHub         |
 | CI/CD                  | Jenkins             |
 | Containerization       | Docker              |
