@@ -9,6 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
@@ -17,5 +20,18 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
     "vite": "^6.0.3"
-  }
+  },
+  "description": "<<<<<<< HEAD\r # NexusCloud — Cloud DevOps Platform",
+  "main": "vite.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adabhade087/Cloud-Deployment-codebase.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adabhade087/Cloud-Deployment-codebase/issues"
+  },
+  "homepage": "https://github.com/adabhade087/Cloud-Deployment-codebase#readme"
 }
