@@ -3,11 +3,15 @@ const cors = require("cors");
 require("dotenv").config();
 
 const db = require("./config/db");
+const repositoryRoutes = require("../routes/repositoryRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Repository routes
+app.use("/api/repositories", repositoryRoutes);
 
 // Health test
 app.get("/api/health", (req, res) => {

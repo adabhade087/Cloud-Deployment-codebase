@@ -5,28 +5,25 @@ export default function Repositories() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchRepositories = async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await fetch("http://localhost:5000/api/repositories");
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch repositories");
-      }
-
-      setRepositories(data.repositories || []);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchRepositories = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/repositories");
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch repositories");
+        }
+
+        setRepositories(data.repositories || []);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchRepositories();
   }, []);
 
@@ -41,7 +38,7 @@ export default function Repositories() {
 
       {loading && (
         <div className="loading-overlay">
-          <div className="spinner" />
+          <div className="spinner"></div>
           <span>Loading repositories...</span>
         </div>
       )}
@@ -74,7 +71,7 @@ export default function Repositories() {
                   <h2
                     style={{
                       fontSize: "16px",
-                      marginBottom: "6px",
+                      marginBottom: "8px",
                       wordBreak: "break-word",
                     }}
                   >
