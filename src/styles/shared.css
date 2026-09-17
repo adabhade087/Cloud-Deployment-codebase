@@ -1,8 +1,12 @@
-.tab-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
+return (<div> <div style= {
+      {
+      background: "red",
+      color: "white",
+      padding: "30px",
+      fontSize: "30px",
+      fontWeight: "bold",
+      marginBottom: "30px",
+    }
+  }
+
+  > REPOSITORIES TEST </div>

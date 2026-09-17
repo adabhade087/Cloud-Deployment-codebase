@@ -17,7 +17,7 @@ app.use("/api/repositories", repositoryRoutes);
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "CloudForge backend is running!",
+    message: "NexusCloud backend is running!",
   });
 });
 
@@ -44,5 +44,5 @@ app.get("/api/db-test", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`CloudForge backend running on port ${PORT}`);
+  console.log(`NexusCloud backend running on port ${PORT}`);
 });

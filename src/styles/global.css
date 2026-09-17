@@ -570,3 +570,14 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 480px) {
   .hide-mobile { display: none !important; }
 }
+
+/* Repositories page heading */
+.repositories-page-title {
+  color: #f4f4f5 !important;
+  font-size: 32px !important;
+  font-weight: 700 !important;
+}
+
+.repositories-page-subtitle {
+  color: #a1a1aa !important;
+}
