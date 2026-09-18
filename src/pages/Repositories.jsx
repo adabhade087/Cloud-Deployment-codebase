@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { api } from "../services/api";
 import {
   Plus,
   GitBranch,
@@ -25,11 +26,9 @@ export default function Repositories() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:5000/api/repositories");
+      const data = await api.getRepositories();
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (!data.success) {
         throw new Error(data.message || "Failed to fetch repositories");
       }
 

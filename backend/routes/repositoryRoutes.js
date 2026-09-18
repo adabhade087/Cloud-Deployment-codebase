@@ -1,7 +1,10 @@
 const express = require("express");
+const db = require("../config/db");
+const authMiddleware = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
-const db = require("../config/db");
+router.use(authMiddleware);
 
 // GET all repositories
 router.get("/", async (req, res) => {
