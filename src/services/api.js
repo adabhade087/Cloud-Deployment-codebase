@@ -118,6 +118,50 @@ export const api = {
 
     return data;
   },
+  async updateRepository(id, { url, branch }) {
+    const response = await fetch(
+      `http://localhost:5000/api/repositories/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          url,
+          branch,
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to update repository");
+    }
+
+    return data;
+  },
+
+  async deleteRepository(id) {
+    const response = await fetch(
+      `http://localhost:5000/api/repositories/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          ...getAuthHeaders(),
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to delete repository");
+    }
+
+    return data;
+  },
 
   async deploy(config) {
     await delay(2000);

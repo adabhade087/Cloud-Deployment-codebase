@@ -62,23 +62,12 @@ export default function Repositories() {
       setSavingEdit(true);
       setError("");
 
-      const response = await fetch(
-        `http://localhost:5000/api/repositories/${editingRepo.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            url: editUrl.trim(),
-            branch: editBranch.trim(),
-          }),
-        },
-      );
+      const data = await api.updateRepository(editingRepo.id, {
+        url: editUrl.trim(),
+        branch: editBranch.trim(),
+      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (!data.success) {
         throw new Error(data.message || "Failed to update repository");
       }
 
@@ -118,16 +107,9 @@ export default function Repositories() {
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/repositories/${id}`,
-        {
-          method: "DELETE",
-        },
-      );
+      const data = await api.deleteRepository(id);
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (!data.success) {
         throw new Error(data.message || "Failed to delete repository");
       }
 
