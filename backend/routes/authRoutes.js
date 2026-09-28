@@ -3,34 +3,64 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const db = require("../config/db");
+const authRateLimiter = require("../middleware/rateLimitMiddleware");
 
 const router = express.Router();
 
 // Register user
-router.post("/register", async (req, res) => {
+router.post("/register", authRateLimiter, async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check required fields
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Name, email and password are required",
-      });
-    }
+// Check required fields
+if (!name || !email || !password) {
+  return res.status(400).json({
+    success: false,
+    message: "Name, email and password are required",
+  });
+}
 
-    // Check if email already exists
-    const [existingUsers] = await db.query(
-      "SELECT id FROM users WHERE email = ?",
-      [email],
-    );
+const trimmedName = name.trim();
+const normalizedEmail = email.trim().toLowerCase();
 
-    if (existingUsers.length > 0) {
-      return res.status(409).json({
-        success: false,
-        message: "Email already registered",
-      });
-    }
+// Check name
+if (trimmedName.length < 2 || trimmedName.length > 100) {
+  return res.status(400).json({
+    success: false,
+    message: "Name must be between 2 and 100 characters",
+  });
+}
+
+// Check email
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailRegex.test(normalizedEmail)) {
+  return res.status(400).json({
+    success: false,
+    message: "Please provide a valid email address",
+  });
+}
+
+// Check password
+if (password.length < 8) {
+  return res.status(400).json({
+    success: false,
+    message: "Password must be at least 8 characters",
+  });
+}
+
+// Check if email already exists
+const [existingUsers] = await db.query(
+  "SELECT id FROM users WHERE email = ?",
+  [normalizedEmail],
+);
+
+if (existingUsers.length > 0) {
+  return res.status(409).json({
+    success: false,
+    message: "Email already registered",
+  });
+}
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
@@ -38,7 +68,7 @@ router.post("/register", async (req, res) => {
     // Save user
     const [result] = await db.query(
       "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
-      [name, email, passwordHash],
+      [trimmedName, normalizedEmail, passwordHash],
     );
 
     res.status(201).json({
@@ -57,23 +87,33 @@ router.post("/register", async (req, res) => {
 });
 
 // Login user
-router.post("/login", async (req, res) => {
+router.post("/login", authRateLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check required fields
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and password are required",
-      });
-    }
+if (!email || !password) {
+  return res.status(400).json({
+    success: false,
+    message: "Email and password are required",
+  });
+}
+
+const normalizedEmail = email.trim().toLowerCase();
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailRegex.test(normalizedEmail)) {
+  return res.status(400).json({
+    success: false,
+    message: "Please provide a valid email address",
+  });
+}
 
     // Find user
     const [users] = await db.query(
-      "SELECT id, name, email, password_hash FROM users WHERE email = ?",
-      [email],
-    );
+  "SELECT id, name, email, password_hash FROM users WHERE email = ?",
+  [normalizedEmail],
+);
 
     if (users.length === 0) {
       return res.status(401).json({

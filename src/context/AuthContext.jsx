@@ -9,6 +9,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const stored = localStorage.getItem("nexuscloud_auth");
+
     if (stored) {
       try {
         setUser(JSON.parse(stored));
@@ -16,18 +17,23 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("nexuscloud_auth");
       }
     }
+
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     const result = await api.login(email, password);
+
     const userData = {
       ...result.user,
       token: result.token,
       isAuthenticated: true,
     };
 
-    localStorage.setItem("nexuscloud_auth", JSON.stringify(userData));
+    localStorage.setItem(
+      "nexuscloud_auth",
+      JSON.stringify(userData),
+    );
 
     setUser(userData);
     return result;
@@ -35,8 +41,18 @@ export function AuthProvider({ children }) {
 
   const signup = async (data) => {
     const result = await api.signup(data);
-    const userData = { ...result.user, isAuthenticated: true };
-    localStorage.setItem("nexuscloud_auth", JSON.stringify(userData));
+
+    const userData = {
+      ...result.user,
+      token: result.token,
+      isAuthenticated: true,
+    };
+
+    localStorage.setItem(
+      "nexuscloud_auth",
+      JSON.stringify(userData),
+    );
+
     setUser(userData);
     return result;
   };
@@ -50,7 +66,14 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, signup, logout, isAuthenticated, loading }}
+      value={{
+        user,
+        login,
+        signup,
+        logout,
+        isAuthenticated,
+        loading,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -59,6 +82,10 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+
+  if (!ctx) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+
   return ctx;
 }

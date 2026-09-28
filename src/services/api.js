@@ -57,10 +57,7 @@ export const api = {
       throw new Error("Passwords do not match");
     }
 
-    if (password.length < 4) {
-      throw new Error("Password must be at least 4 characters");
-    }
-
+    if (password.length < 8) throw new Error("Password must be at least 8 characters");
     const response = await fetch("http://localhost:5000/api/auth/register", {
       method: "POST",
       headers: {
@@ -81,6 +78,21 @@ export const api = {
 
     // Register, then immediately log the user in
     return await this.login(email, password);
+  },
+    async getProfile() {
+    const response = await fetch("http://localhost:5000/api/users/me", {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch profile");
+    }
+
+    return data;
   },
   async getRepositories() {
     const response = await fetch("http://localhost:5000/api/repositories", {

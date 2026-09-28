@@ -5,6 +5,8 @@ require("dotenv").config();
 const db = require("../config/db");
 const repositoryRoutes = require("../routes/repositoryRoutes");
 const authRoutes = require("../routes/authRoutes");
+const userRoutes = require("../routes/userRoutes");
+const errorMiddleware = require("../middleware/errorMiddleware");
 
 const app = express();
 
@@ -14,6 +16,7 @@ app.use(express.json());
 // Repository routes
 app.use("/api/repositories", repositoryRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 // Health test
 app.get("/api/health", (req, res) => {
@@ -42,6 +45,8 @@ app.get("/api/db-test", async (req, res) => {
     });
   }
 });
+
+app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 5000;
 
