@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is missing from environment variables");
+}
 
 const db = require("../config/db");
 const repositoryRoutes = require("../routes/repositoryRoutes");
@@ -10,8 +13,13 @@ const errorMiddleware = require("../middleware/errorMiddleware");
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
+app.use(express.json({ limit: "10kb" }));
 
 // Repository routes
 app.use("/api/repositories", repositoryRoutes);
@@ -44,6 +52,13 @@ app.get("/api/db-test", async (req, res) => {
       message: error.message,
     });
   }
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "API endpoint not found",
+  });
 });
 
 app.use(errorMiddleware);

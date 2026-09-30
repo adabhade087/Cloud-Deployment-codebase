@@ -3,6 +3,7 @@ const db = require("../config/db");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
+router.use(authMiddleware);
 const isValidGitHubUrl = (url) => {
   try {
     const parsedUrl = new URL(url);

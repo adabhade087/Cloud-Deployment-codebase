@@ -13,7 +13,7 @@ const mainNav = [
 ];
 
 const bottomNav = [
-  { path: "/dashboard", label: "Settings", icon: "settings" },
+  { path: "/settings", label: "Settings", icon: "settings" },
   { path: "/dashboard", label: "Help", icon: "help" },
 ];
 

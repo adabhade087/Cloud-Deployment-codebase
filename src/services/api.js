@@ -45,6 +45,119 @@ export const api = {
 
     return data;
   },
+  async changePassword(currentPassword, newPassword) {
+  const response = await fetch(
+    "http://localhost:5000/api/users/me/password",
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        currentPassword,
+        newPassword,
+      }),
+    },
+  );
+  
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to change password");
+  }
+
+  return data;
+},
+  async getPreferences() {
+    const response = await fetch(
+      "http://localhost:5000/api/users/preferences",
+      {
+        headers: {
+          ...getAuthHeaders(),
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to fetch preferences",
+      );
+    }
+
+    return data;
+  },
+
+  async updatePreferences(preferences) {
+    const response = await fetch(
+      "http://localhost:5000/api/users/preferences",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(preferences),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to update preferences",
+      );
+    }
+
+    return data;
+  },
+  async getNotificationPreferences() {
+  const response = await fetch(
+    "http://localhost:5000/api/users/notifications",
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || "Failed to fetch notification preferences",
+    );
+  }
+
+  return data;
+},
+
+async updateNotificationPreferences(notifications) {
+  const response = await fetch(
+    "http://localhost:5000/api/users/notifications",
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(notifications),
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || "Failed to update notification preferences",
+    );
+  }
+
+  return data;
+},
 
   async signup(data) {
     const { firstName, lastName, email, password, confirmPassword } = data;
@@ -94,6 +207,30 @@ export const api = {
 
     return data;
   },
+  async updateProfile(name, email) {
+  const response = await fetch(
+    "http://localhost:5000/api/users/me",
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        name,
+        email,
+      }),
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to update profile");
+  }
+
+  return data;
+},
   async getRepositories() {
     const response = await fetch("http://localhost:5000/api/repositories", {
       headers: {

@@ -6,6 +6,7 @@ import DashboardLayout from "./components/DashboardLayout";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
 
 import AddRepository from "./pages/AddRepository";
 import Repositories from "./pages/Repositories";
@@ -65,6 +66,8 @@ export default function App() {
       <Route element={<AppLayout />}>
         {/* Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
+        {/* Settings */}
+        <Route path="/settings" element={<Settings />} />
 
         {/* Repositories */}
         <Route path="/repositories" element={<Repositories />} />

@@ -1,12 +1,438 @@
-return (<div> <div style= {
-      {
-      background: "red",
-      color: "white",
-      padding: "30px",
-      fontSize: "30px",
-      fontWeight: "bold",
-      marginBottom: "30px",
-    }
+.tab-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+/* ================================
+   Settings Page
+================================ */
+
+.settings-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 28px 32px 48px;
+  box-sizing: border-box;
+}
+
+.settings-header {
+  margin-bottom: 28px;
+}
+
+.settings-header h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.settings-header p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.settings-card {
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid #272733;
+  border-radius: 14px;
+  background: #15151d;
+}
+
+.settings-card-header {
+  margin-bottom: 22px;
+}
+
+.settings-card-header h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.settings-card-header p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.settings-field {
+  margin-bottom: 18px;
+}
+
+.settings-field label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.settings-field input {
+  width: 100%;
+  height: 42px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid #2a2a35;
+  border-radius: 8px;
+  background: #101017;
+  color: #f8fafc;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.settings-field input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.settings-button {
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #6366f1;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.settings-button:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+.settings-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.settings-alert {
+  margin-bottom: 18px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.settings-success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+}
+
+.settings-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+@media (max-width: 700px) {
+  .settings-page {
+    padding: 20px 16px 40px;
   }
 
-  > REPOSITORIES TEST </div>
+  .settings-card {
+    padding: 18px;
+  }
+}
+/* ================================
+   Settings Navigation
+================================ */
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 32px;
+  width: 100%;
+  align-items: start;
+}
+
+.settings-sidebar {
+  position: sticky;
+  top: 20px;
+}
+
+.settings-nav-group {
+  margin-bottom: 24px;
+}
+
+.settings-nav-title {
+  margin-bottom: 8px;
+  padding: 0 10px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-nav-item {
+  display: block;
+  width: 100%;
+  padding: 9px 10px;
+  margin-bottom: 2px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.settings-nav-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+}
+
+.settings-nav-item.active {
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+}
+
+.settings-content {
+  min-width: 0;
+  width: 100%;
+}
+
+.settings-placeholder {
+  padding: 28px;
+  border: 1px dashed #2a2a35;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.settings-placeholder span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #a5b4fc;
+}
+
+.settings-placeholder p {
+  max-width: 420px;
+  margin: 8px auto 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.settings-field small {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+@media (max-width: 600px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .settings-sidebar {
+    position: static;
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .settings-nav-group {
+    flex: 0 0 auto;
+    margin-bottom: 0;
+  }
+
+  .settings-nav-title {
+    white-space: nowrap;
+  }
+
+  .settings-nav-item {
+    width: auto;
+    white-space: nowrap;
+  }
+}
+/* Settings dropdowns */
+.settings-select {
+  width: 100%;
+  max-width: 420px;
+  min-height: 44px;
+  padding: 10px 40px 10px 14px;
+  border: 1px solid #2f3140;
+  border-radius: 10px;
+  background: #1a1b23;
+  color: #f3f4f6;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  appearance: auto;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.settings-select:hover {
+  border-color: #4b4d60;
+  background: #1e1f28;
+}
+
+.settings-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.settings-select option {
+  background: #1a1b23;
+  color: #f3f4f6;
+}
+/* Light theme - Settings card */
+html.light .settings-card {
+  background: var(--bg-card);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+html.light .settings-card-header h2 {
+  color: var(--text-primary);
+}
+
+html.light .settings-card-header p {
+  color: var(--text-secondary);
+}
+
+html.light .settings-field label {
+  color: var(--text-primary);
+}
+
+html.light .settings-select {
+  background: #ffffff;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+html.light .settings-select:hover {
+  background: #f8fafc;
+  border-color: #9ca3af;
+}
+
+html.light .settings-select:focus {
+  border-color: var(--accent-blue);
+}
+
+html.light .settings-select option {
+  background: #ffffff;
+  color: #111827;
+}
+/* Notifications */
+.notification-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.notification-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-medium);
+}
+
+.notification-info {
+  min-width: 0;
+}
+
+.notification-title {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.notification-description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Toggle */
+.notification-toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 26px;
+}
+
+.notification-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.notification-slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  transition: 0.2s ease;
+}
+
+.notification-slider::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 2px;
+  top: 2px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: 0.2s ease;
+}
+
+.notification-toggle input:checked + .notification-slider {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.notification-toggle input:checked + .notification-slider::before {
+  transform: translateX(20px);
+  background: #ffffff;
+}
+
+.notification-toggle input:focus-visible + .notification-slider {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+@media (max-width: 600px) {
+  .notification-item {
+    align-items: flex-start;
+  }
+}
