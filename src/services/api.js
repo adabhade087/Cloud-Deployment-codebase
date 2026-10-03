@@ -231,6 +231,84 @@ async updateNotificationPreferences(notifications) {
 
   return data;
 },
+  async getGitHubConnection() {
+    const response = await fetch("http://localhost:5000/api/users/github", {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch GitHub status");
+    }
+    return data;
+  },
+  async disconnectGitHub() {
+    const response = await fetch("http://localhost:5000/api/users/github", {
+      method: "DELETE",
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to disconnect GitHub");
+    }
+    return data;
+  },
+  async getApiTokens() {
+    const response = await fetch("http://localhost:5000/api/users/api-tokens", {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch API tokens");
+    }
+    return data;
+  },
+  async createApiToken(name) {
+    const response = await fetch("http://localhost:5000/api/users/api-tokens", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ name }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to create API token");
+    }
+    return data;
+  },
+  async revokeApiToken(id) {
+    const response = await fetch(`http://localhost:5000/api/users/api-tokens/${id}`, {
+      method: "DELETE",
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to revoke API token");
+    }
+    return data;
+  },
+  async deleteAccount() {
+    const response = await fetch("http://localhost:5000/api/users/me", {
+      method: "DELETE",
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to delete account");
+    }
+    return data;
+  },
   async getRepositories() {
     const response = await fetch("http://localhost:5000/api/repositories", {
       headers: {

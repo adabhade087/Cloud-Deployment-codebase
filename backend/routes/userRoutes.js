@@ -674,4 +674,132 @@ router.put("/github", async (req, res) => {
   }
 });
 
+// Disconnect GitHub
+router.delete("/github", async (req, res) => {
+  try {
+    await db.query(
+      "DELETE FROM user_github_connections WHERE user_id = ?",
+      [req.user.id]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "GitHub account disconnected successfully",
+    });
+  } catch (error) {
+    console.error("DELETE GitHub connection error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to disconnect GitHub account",
+    });
+  }
+});
+
+// GET user API tokens
+router.get("/api-tokens", async (req, res) => {
+  try {
+    const [tokens] = await db.query(
+      "SELECT id, name, token, created_at FROM user_api_tokens WHERE user_id = ? ORDER BY id DESC",
+      [req.user.id]
+    );
+
+    res.status(200).json({
+      success: true,
+      tokens,
+    });
+  } catch (error) {
+    console.error("GET api tokens error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch API tokens",
+    });
+  }
+});
+
+// CREATE a new API token
+router.post("/api-tokens", async (req, res) => {
+  try {
+    const { name = "Default API Token" } = req.body;
+    const rawToken = `cf_live_${crypto.randomBytes(24).toString("hex")}`;
+
+    const [result] = await db.query(
+      "INSERT INTO user_api_tokens (user_id, name, token) VALUES (?, ?, ?)",
+      [req.user.id, name.trim(), rawToken]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "API token generated successfully",
+      token: {
+        id: result.insertId,
+        name: name.trim(),
+        token: rawToken,
+        created_at: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("POST api token error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate API token",
+    });
+  }
+});
+
+// REVOKE an API token
+router.delete("/api-tokens/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await db.query(
+      "DELETE FROM user_api_tokens WHERE id = ? AND user_id = ?",
+      [id, req.user.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "API token not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "API token revoked successfully",
+    });
+  } catch (error) {
+    console.error("DELETE api token error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to revoke API token",
+    });
+  }
+});
+
+// DANGER ZONE: Delete User Account
+router.delete("/me", async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Clean up all related records
+    await db.query("DELETE FROM user_api_tokens WHERE user_id = ?", [userId]);
+    await db.query("DELETE FROM user_github_connections WHERE user_id = ?", [userId]);
+    await db.query("DELETE FROM user_preferences WHERE user_id = ?", [userId]);
+    await db.query("DELETE FROM user_notification_preferences WHERE user_id = ?", [userId]);
+    await db.query("DELETE FROM repositories WHERE user_id = ?", [userId]);
+    await db.query("DELETE FROM deployments WHERE user_id = ?", [userId]);
+    await db.query("DELETE FROM users WHERE id = ?", [userId]);
+
+    res.status(200).json({
+      success: true,
+      message: "Account and associated data deleted successfully",
+    });
+  } catch (error) {
+    console.error("DELETE user account error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete account",
+    });
+  }
+});
+
 module.exports = router;

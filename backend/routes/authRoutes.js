@@ -64,11 +64,14 @@ if (existingUsers.length > 0) {
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
+    const userRole = ["admin", "developer", "viewer"].includes(req.body.role)
+      ? req.body.role
+      : "developer";
 
     // Save user
     const [result] = await db.query(
-      "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
-      [trimmedName, normalizedEmail, passwordHash],
+      "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
+      [trimmedName, normalizedEmail, passwordHash, userRole],
     );
 
     res.status(201).json({
@@ -111,7 +114,7 @@ if (!emailRegex.test(normalizedEmail)) {
 
     // Find user
     const [users] = await db.query(
-  "SELECT id, name, email, password_hash FROM users WHERE email = ?",
+  "SELECT id, name, email, password_hash, role FROM users WHERE email = ?",
   [normalizedEmail],
 );
 
@@ -134,10 +137,13 @@ if (!emailRegex.test(normalizedEmail)) {
       });
     }
 
+    const userRole = user.role || "developer";
+
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
+        role: userRole,
       },
       process.env.JWT_SECRET,
       {
@@ -153,6 +159,7 @@ if (!emailRegex.test(normalizedEmail)) {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: userRole,
       },
     });
   } catch (error) {
@@ -163,6 +170,14 @@ if (!emailRegex.test(normalizedEmail)) {
       message: "Failed to login",
     });
   }
+});
+
+// Logout user
+router.post("/logout", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
 });
 
 module.exports = router;
