@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // ─── Static Data ────────────────────────────────────────────────────────────
 
@@ -71,28 +72,32 @@ const FAQS = [
 
 const QUICK_LINKS = [
   {
+    icon: "🚀",
+    label: "Getting Started",
+    desc: "Connect your repo and deploy in minutes",
+    href: "/repositories/add",
+    internal: true,
+  },
+  {
     icon: "📖",
     label: "API Documentation",
-    desc: "Full REST API reference for all endpoints",
+    desc: "Full REST API reference for developers",
     href: "https://github.com/adabhade087/Cloud-Deployment-codebase/blob/main/backend/API.md",
+    internal: false,
   },
   {
     icon: "🐛",
     label: "Report a Bug",
-    desc: "Open a GitHub issue for any problem",
-    href: "https://github.com/adabhade087/Cloud-Deployment-codebase/issues/new",
+    desc: "Let us know about any issue you face",
+    href: "mailto:adityabhade087@gmail.com?subject=CloudForge Bug Report",
+    internal: false,
   },
   {
-    icon: "💻",
-    label: "Source Code",
-    desc: "View the full project on GitHub",
-    href: "https://github.com/adabhade087/Cloud-Deployment-codebase",
-  },
-  {
-    icon: "📋",
-    label: "Changelog",
-    desc: "See all recent updates and changes",
-    href: "https://github.com/adabhade087/Cloud-Deployment-codebase/commits/main",
+    icon: "📧",
+    label: "Contact Support",
+    desc: "Email the team for help or questions",
+    href: "mailto:adityabhade087@gmail.com?subject=CloudForge Support",
+    internal: false,
   },
 ];
 
@@ -208,6 +213,8 @@ function SystemStatus() {
 }
 
 function QuickLinks() {
+  const navigate = useNavigate();
+
   return (
     <div style={{ marginBottom: "32px" }}>
       <h2 style={s.sectionTitle}>Quick Links</h2>
@@ -218,37 +225,65 @@ function QuickLinks() {
           gap: "12px",
         }}
       >
-        {QUICK_LINKS.map((link) => (
-          <a
-            key={link.label}
-            href={link.href}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              display: "block",
-              background: "#13131a",
-              border: "1px solid #2a2a35",
-              borderRadius: "12px",
-              padding: "18px",
-              textDecoration: "none",
-              transition: "border-color 0.2s, transform 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "#6366f1";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "#2a2a35";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            <div style={{ fontSize: "24px", marginBottom: "8px" }}>{link.icon}</div>
-            <div style={{ fontWeight: 600, fontSize: "14px", color: "#f8fafc", marginBottom: "4px" }}>
-              {link.label}
-            </div>
-            <div style={{ fontSize: "12px", color: "#64748b" }}>{link.desc}</div>
-          </a>
-        ))}
+        {QUICK_LINKS.map((link) => {
+          const cardStyle = {
+            display: "block",
+            background: "#13131a",
+            border: "1px solid #2a2a35",
+            borderRadius: "12px",
+            padding: "18px",
+            textDecoration: "none",
+            cursor: "pointer",
+            transition: "border-color 0.2s, transform 0.15s",
+          };
+
+          const handleMouseEnter = (e) => {
+            e.currentTarget.style.borderColor = "#6366f1";
+            e.currentTarget.style.transform = "translateY(-2px)";
+          };
+          const handleMouseLeave = (e) => {
+            e.currentTarget.style.borderColor = "#2a2a35";
+            e.currentTarget.style.transform = "translateY(0)";
+          };
+
+          const content = (
+            <>
+              <div style={{ fontSize: "24px", marginBottom: "8px" }}>{link.icon}</div>
+              <div style={{ fontWeight: 600, fontSize: "14px", color: "#f8fafc", marginBottom: "4px" }}>
+                {link.label}
+              </div>
+              <div style={{ fontSize: "12px", color: "#64748b" }}>{link.desc}</div>
+            </>
+          );
+
+          if (link.internal) {
+            return (
+              <div
+                key={link.label}
+                style={cardStyle}
+                onClick={() => navigate(link.href)}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                {content}
+              </div>
+            );
+          }
+
+          return (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              style={cardStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              {content}
+            </a>
+          );
+        })}
       </div>
     </div>
   );
