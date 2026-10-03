@@ -14,7 +14,7 @@ const mainNav = [
 
 const bottomNav = [
   { path: "/settings", label: "Settings", icon: "settings" },
-  { path: "/dashboard", label: "Help", icon: "help" },
+  { path: "/help", label: "Help", icon: "help" },
 ];
 
 const icons = {

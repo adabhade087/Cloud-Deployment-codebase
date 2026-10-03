@@ -940,6 +940,7 @@ const renderNotifications = () => (
     </section>
   );
 
+
   const renderDanger = () => (
     <section className="settings-card" style={{ borderColor: "#ef4444" }}>
       <div className="settings-card-header">

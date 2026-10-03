@@ -7,6 +7,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
+import Help from "./pages/Help";
 
 import AddRepository from "./pages/AddRepository";
 import Repositories from "./pages/Repositories";
@@ -68,6 +69,8 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         {/* Settings */}
         <Route path="/settings" element={<Settings />} />
+        {/* Help */}
+        <Route path="/help" element={<Help />} />
 
         {/* Repositories */}
         <Route path="/repositories" element={<Repositories />} />
