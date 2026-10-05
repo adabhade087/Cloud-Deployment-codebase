@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("../config/db");
 const authMiddleware = require("../middleware/authMiddleware");
+const { detectProject } = require("../services/repositoryAnalyzer");
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -209,6 +210,58 @@ if (!branchCheck.exists) {
     });
   }
 });
+// ANALYZE repository
+router.post("/:id/analyze", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [repositories] = await db.query(
+      "SELECT * FROM repositories WHERE id = ? AND user_id = ?",
+      [id, req.user.id]
+    );
+
+    if (repositories.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Repository not found",
+      });
+    }
+
+    const repository = repositories[0];
+
+    const analysis = await detectProject(
+      repository.url,
+      repository.branch
+    );
+
+    if (!analysis.template) {
+      return res.status(400).json({
+        success: false,
+        message: "Unable to detect a supported project type",
+        analysis,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Repository analyzed successfully",
+      repository: {
+        id: repository.id,
+        url: repository.url,
+        branch: repository.branch,
+      },
+      analysis,
+    });
+  } catch (error) {
+    console.error("Repository analysis error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to analyze repository",
+    });
+  }
+});
+
 // UPDATE repository
 router.put("/:id", async (req, res) => {
   try {

@@ -345,6 +345,28 @@ async updateNotificationPreferences(notifications) {
 
     return data;
   },
+  async analyzeRepository(id) {
+  const response = await fetch(
+    `http://localhost:5000/api/repositories/${id}/analyze`,
+    {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || "Failed to analyze repository"
+    );
+  }
+
+    return data;
+  },
+
   async updateRepository(id, { url, branch }) {
     const response = await fetch(
       `http://localhost:5000/api/repositories/${id}`,
