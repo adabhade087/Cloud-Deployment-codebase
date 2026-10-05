@@ -55,7 +55,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "CloudForge backend is running!",
+    message: "NexusCloud backend is running!",
     timestamp: new Date().toISOString(),
   });
 });
@@ -97,7 +97,7 @@ async function startServer() {
   try {
     await initDb();
     app.listen(PORT, () => {
-      console.log(`CloudForge backend running on port ${PORT}`);
+      console.log(`NexusCloud backend running on port ${PORT}`);
     });
   } catch (err) {
     console.error("Failed to initialize database on startup:", err);

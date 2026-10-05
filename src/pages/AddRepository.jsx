@@ -48,7 +48,7 @@ export default function AddRepository() {
         <h1 className="page-title">Add Repository</h1>
 
         <p className="page-subtitle">
-          Connect a GitHub repository to CloudForge.
+          Connect a GitHub repository to NexusCloud.
         </p>
       </div>
 

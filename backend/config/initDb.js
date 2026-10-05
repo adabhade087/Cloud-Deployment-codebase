@@ -246,6 +246,54 @@ async function initDb() {
       )
     `);
 
+    // 17. GitHub OAuth states
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS github_oauth_states (
+        state VARCHAR(128) PRIMARY KEY,
+        user_id INT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 18. User GitHub connections
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_github_connections (
+        user_id INT PRIMARY KEY,
+        github_username VARCHAR(100) NOT NULL,
+        github_access_token VARCHAR(255) NOT NULL,
+        connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 19. User preferences
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_preferences (
+        user_id INT PRIMARY KEY,
+        theme VARCHAR(20) DEFAULT 'dark',
+        language VARCHAR(10) DEFAULT 'en',
+        timezone VARCHAR(50) DEFAULT 'Asia/Kolkata',
+        default_landing_page VARCHAR(50) DEFAULT 'dashboard',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 20. User notification preferences
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_notification_preferences (
+        user_id INT PRIMARY KEY,
+        deployment_notifications BOOLEAN DEFAULT TRUE,
+        pipeline_notifications BOOLEAN DEFAULT TRUE,
+        security_notifications BOOLEAN DEFAULT TRUE,
+        system_notifications BOOLEAN DEFAULT TRUE,
+        email_notifications BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
     // ==========================================
     // SEED DEFAULT DEMO DATA IF TABLES ARE EMPTY
     // ==========================================

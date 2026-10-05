@@ -31,7 +31,7 @@ export default function DashboardHeader({ title, subtitle, onMenuClick }) {
             </>
           ) : (
             <>
-              <h1 className="header-title">{greeting()}, {user?.name?.split(' ')[0] || 'Anuj'}</h1>
+              <h1 className="header-title">{greeting()}, {user?.name?.split(' ')[0] || 'Developer'}</h1>
               <p className="header-subtitle">Here's what's happening with your infrastructure today.</p>
             </>
           )}
@@ -83,7 +83,7 @@ export default function DashboardHeader({ title, subtitle, onMenuClick }) {
         </button>
 
         <div className="header-avatar">
-          {user?.name?.[0] || 'A'}
+          {user?.name?.[0]?.toUpperCase() || 'D'}
         </div>
       </div>
     </header>

@@ -159,7 +159,7 @@ export default function Repositories() {
               color: "#a1a1aa",
             }}
           >
-            Manage repositories connected to CloudForge.
+            Manage repositories connected to NexusCloud.
           </p>
         </div>
 
@@ -519,7 +519,7 @@ export default function Repositories() {
               fontSize: "13px",
             }}
           >
-            Connect your first repository to start deploying with CloudForge.
+            Connect your first repository to start deploying with NexusCloud.
           </p>
 
           <button

@@ -180,4 +180,279 @@ router.post("/logout", (req, res) => {
   });
 });
 
+// =============================================================
+// GITHUB OAUTH LOGIN
+// =============================================================
+router.get("/github", async (req, res) => {
+  try {
+    if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
+      return res.redirect(
+        "http://localhost:5173/login?error=" +
+          encodeURIComponent("GitHub OAuth is not configured. Please set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in backend/.env")
+      );
+    }
+
+    const crypto = require("crypto");
+    const state = crypto.randomBytes(32).toString("hex");
+    await db.query(
+      "INSERT INTO github_oauth_states (state, user_id, expires_at) VALUES (?, NULL, DATE_ADD(NOW(), INTERVAL 15 MINUTE))",
+      [state]
+    );
+
+    const redirectUri =
+      "https://github.com/login/oauth/authorize?client_id=" +
+      encodeURIComponent(process.env.GITHUB_CLIENT_ID) +
+      "&scope=read:user,user:email&state=" +
+      encodeURIComponent(state);
+
+    res.redirect(redirectUri);
+  } catch (error) {
+    console.error("GET /api/auth/github error:", error);
+    res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Failed to initialize GitHub login"));
+  }
+});
+
+router.get("/github/callback", async (req, res) => {
+  try {
+    const { code, state } = req.query;
+
+    if (!code || !state) {
+      return res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Missing authorization code or state from GitHub"));
+    }
+
+    const [stateRows] = await db.query(
+      "SELECT state FROM github_oauth_states WHERE state = ? AND expires_at > NOW()",
+      [state]
+    );
+
+    if (stateRows.length === 0) {
+      return res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Invalid or expired GitHub OAuth session"));
+    }
+
+    await db.query("DELETE FROM github_oauth_states WHERE state = ?", [state]);
+
+    // Exchange code for access token
+    const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code,
+      }),
+    });
+
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || !tokenData.access_token) {
+      return res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Failed to obtain access token from GitHub"));
+    }
+
+    // Fetch user profile
+    const userRes = await fetch("https://api.github.com/user", {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+        Accept: "application/vnd.github+json",
+      },
+    });
+    const githubUser = await userRes.json();
+
+    if (!userRes.ok || !githubUser.login) {
+      return res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Failed to fetch user profile from GitHub"));
+    }
+
+    // Fetch user emails to get primary verified email
+    let userEmail = githubUser.email;
+    if (!userEmail) {
+      const emailsRes = await fetch("https://api.github.com/user/emails", {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+          Accept: "application/vnd.github+json",
+        },
+      });
+      const emails = await emailsRes.json();
+      if (Array.isArray(emails)) {
+        const primary = emails.find((e) => e.primary && e.verified) || emails[0];
+        if (primary) userEmail = primary.email;
+      }
+    }
+
+    if (!userEmail) {
+      userEmail = `${githubUser.login}@users.noreply.github.com`;
+    }
+
+    const normalizedEmail = userEmail.toLowerCase().trim();
+    const displayName = githubUser.name || githubUser.login;
+
+    // Find or create user in MySQL
+    let [users] = await db.query("SELECT id, name, email, role FROM users WHERE email = ?", [normalizedEmail]);
+    let userId;
+    let userRole = "developer";
+
+    if (users.length === 0) {
+      const crypto = require("crypto");
+      const dummyPasswordHash = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
+      const [insertRes] = await db.query(
+        "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'developer')",
+        [displayName, normalizedEmail, dummyPasswordHash]
+      );
+      userId = insertRes.insertId;
+    } else {
+      userId = users[0].id;
+      userRole = users[0].role || "developer";
+    }
+
+    // Link GitHub connection
+    await db.query(
+      `INSERT INTO user_github_connections (user_id, github_username, github_access_token)
+       VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+       github_username = VALUES(github_username),
+       github_access_token = VALUES(github_access_token),
+       updated_at = CURRENT_TIMESTAMP`,
+      [userId, githubUser.login, tokenData.access_token]
+    );
+
+    // Create JWT
+    const jwtToken = jwt.sign(
+      { id: userId, email: normalizedEmail, role: userRole },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    const userPayload = {
+      id: userId,
+      name: displayName,
+      email: normalizedEmail,
+      role: userRole,
+    };
+
+    res.redirect(
+      `http://localhost:5173/login?oauth=github&token=${jwtToken}&user=${encodeURIComponent(JSON.stringify(userPayload))}`
+    );
+  } catch (error) {
+    console.error("GET /api/auth/github/callback error:", error);
+    res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("GitHub authentication encountered an unexpected error"));
+  }
+});
+
+// =============================================================
+// GOOGLE OAUTH LOGIN
+// =============================================================
+router.get("/google", async (req, res) => {
+  try {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      return res.redirect(
+        "http://localhost:5173/login?error=" +
+          encodeURIComponent("Google OAuth is not configured yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to backend/.env to enable it.")
+      );
+    }
+
+    const crypto = require("crypto");
+    const state = crypto.randomBytes(32).toString("hex");
+    const redirectUri = "http://localhost:5000/api/auth/google/callback";
+    const googleAuthUrl =
+      "https://accounts.google.com/o/oauth2/v2/auth?" +
+      new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        redirect_uri: redirectUri,
+        response_type: "code",
+        scope: "openid profile email",
+        state,
+        access_type: "offline",
+        prompt: "select_account",
+      }).toString();
+
+    res.redirect(googleAuthUrl);
+  } catch (error) {
+    console.error("GET /api/auth/google error:", error);
+    res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Failed to initialize Google login"));
+  }
+});
+
+router.get("/google/callback", async (req, res) => {
+  try {
+    const { code, error: googleError } = req.query;
+
+    if (googleError) {
+      return res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Google access denied: " + googleError));
+    }
+
+    if (!code) {
+      return res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Missing authorization code from Google"));
+    }
+
+    const redirectUri = "http://localhost:5000/api/auth/google/callback";
+
+    // Exchange authorization code for tokens
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }).toString(),
+    });
+
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || !tokenData.access_token) {
+      return res.redirect("http://localhost:5173/login?error=" + encodeURIComponent(tokenData.error_description || "Failed to retrieve Google token"));
+    }
+
+    // Fetch user profile from Google
+    const profileRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+
+    const googleUser = await profileRes.json();
+    if (!profileRes.ok || !googleUser.email) {
+      return res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Failed to retrieve Google user profile"));
+    }
+
+    const normalizedEmail = googleUser.email.toLowerCase().trim();
+    const displayName = googleUser.name || googleUser.given_name || "Google User";
+
+    // Find or create user in MySQL
+    let [users] = await db.query("SELECT id, name, email, role FROM users WHERE email = ?", [normalizedEmail]);
+    let userId;
+    let userRole = "developer";
+
+    if (users.length === 0) {
+      const crypto = require("crypto");
+      const dummyPasswordHash = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
+      const [insertRes] = await db.query(
+        "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'developer')",
+        [displayName, normalizedEmail, dummyPasswordHash]
+      );
+      userId = insertRes.insertId;
+    } else {
+      userId = users[0].id;
+      userRole = users[0].role || "developer";
+    }
+
+    // Create JWT
+    const jwtToken = jwt.sign(
+      { id: userId, email: normalizedEmail, role: userRole },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    const userPayload = {
+      id: userId,
+      name: displayName,
+      email: normalizedEmail,
+      role: userRole,
+    };
+
+    res.redirect(
+      `http://localhost:5173/login?oauth=google&token=${jwtToken}&user=${encodeURIComponent(JSON.stringify(userPayload))}`
+    );
+  } catch (error) {
+    console.error("GET /api/auth/google/callback error:", error);
+    res.redirect("http://localhost:5173/login?error=" + encodeURIComponent("Google authentication encountered an error"));
+  }
+});
+
 module.exports = router;

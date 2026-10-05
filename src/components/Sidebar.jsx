@@ -220,12 +220,12 @@ export default function Sidebar({
           ))}
 
           <div className="sidebar-user">
-            <div className="user-avatar">{user?.name?.[0] || "A"}</div>
+            <div className="user-avatar">{user?.name?.[0]?.toUpperCase() || "D"}</div>
             {!collapsed && (
               <div className="user-info">
-                <span className="user-name">{user?.name || "Anuj"}</span>
+                <span className="user-name">{user?.name || "Developer"}</span>
                 <span className="user-email">
-                  {user?.email || "anuj@nexuscloud.io"}
+                  {user?.email || "developer@nexuscloud.io"}
                 </span>
               </div>
             )}
