@@ -294,6 +294,98 @@ async function initDb() {
       )
     `);
 
+    // 21. Repositories table & analysis schema
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS repositories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NULL,
+        url VARCHAR(500) NOT NULL,
+        branch VARCHAR(100) NOT NULL DEFAULT 'main',
+        detected_language VARCHAR(50) NULL,
+        detected_framework VARCHAR(100) NULL,
+        project_type VARCHAR(50) NULL,
+        package_manager VARCHAR(50) NULL,
+        install_command VARCHAR(255) NULL,
+        build_command VARCHAR(255) NULL,
+        start_command VARCHAR(255) NULL,
+        output_directory VARCHAR(100) NULL,
+        has_dockerfile BOOLEAN DEFAULT FALSE,
+        deployable BOOLEAN DEFAULT FALSE,
+        analysis_status VARCHAR(50) DEFAULT 'unverified',
+        analyzed_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_user (user_id)
+      )
+    `);
+
+    const repoAnalysisColumns = [
+      { name: "detected_language", type: "VARCHAR(50) NULL" },
+      { name: "detected_framework", type: "VARCHAR(100) NULL" },
+      { name: "project_type", type: "VARCHAR(50) NULL" },
+      { name: "package_manager", type: "VARCHAR(50) NULL" },
+      { name: "install_command", type: "VARCHAR(255) NULL" },
+      { name: "build_command", type: "VARCHAR(255) NULL" },
+      { name: "start_command", type: "VARCHAR(255) NULL" },
+      { name: "output_directory", type: "VARCHAR(100) NULL" },
+      { name: "has_dockerfile", type: "BOOLEAN DEFAULT FALSE" },
+      { name: "deployable", type: "BOOLEAN DEFAULT FALSE" },
+      { name: "analysis_status", type: "VARCHAR(50) DEFAULT 'unverified'" },
+      { name: "analyzed_at", type: "TIMESTAMP NULL" },
+    ];
+
+    for (const col of repoAnalysisColumns) {
+      try {
+        const [existing] = await db.query(
+          `SHOW COLUMNS FROM repositories LIKE '${col.name}'`
+        );
+        if (existing.length === 0) {
+          await db.query(
+            `ALTER TABLE repositories ADD COLUMN ${col.name} ${col.type}`
+          );
+        }
+      } catch (colErr) {
+        console.warn(`Notice checking repositories column ${col.name}:`, colErr.message);
+      }
+    }
+
+    // Controlled Migration: Process legacy repositories where user_id IS NULL
+    try {
+      const [nullRepos] = await db.query(
+        "SELECT id, url, branch FROM repositories WHERE user_id IS NULL"
+      );
+
+      for (const legacyRepo of nullRepos) {
+        // Check if there is an exact user-owned record for the same URL
+        const [matchingUserRepos] = await db.query(
+          "SELECT user_id FROM repositories WHERE url = ? AND user_id IS NOT NULL LIMIT 1",
+          [legacyRepo.url]
+        );
+
+        if (matchingUserRepos.length > 0) {
+          // Check if user already has an active entry for this repo URL
+          const targetUserId = matchingUserRepos[0].user_id;
+          const [userAlreadyHas] = await db.query(
+            "SELECT id FROM repositories WHERE user_id = ? AND url = ? AND id != ?",
+            [targetUserId, legacyRepo.url, legacyRepo.id]
+          );
+
+          if (userAlreadyHas.length > 0) {
+            // Duplicate legacy entry: clean up redundant unassigned record
+            await db.query("DELETE FROM repositories WHERE id = ?", [legacyRepo.id]);
+          } else {
+            // Safe backfill: assign legacy record to confirmed owner
+            await db.query("UPDATE repositories SET user_id = ? WHERE id = ?", [
+              targetUserId,
+              legacyRepo.id,
+            ]);
+          }
+        }
+        // If ownership cannot be determined from user history, leave user_id IS NULL (unassigned)
+      }
+    } catch (migErr) {
+      console.warn("Legacy repository migration notice:", migErr.message);
+    }
+
     // ==========================================
     // SEED DEFAULT DEMO DATA IF TABLES ARE EMPTY
     // ==========================================

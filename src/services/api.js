@@ -11,16 +11,19 @@ const getAuthHeaders = () => {
 
   try {
     const auth = JSON.parse(stored);
+    const token = typeof auth === "string" ? auth : auth?.token;
 
-    if (!auth.token) {
+    if (!token) {
       return {};
     }
 
     return {
-      Authorization: `Bearer ${auth.token}`,
+      Authorization: `Bearer ${token}`,
     };
   } catch {
-    return {};
+    return {
+      Authorization: `Bearer ${stored}`,
+    };
   }
 };
 
@@ -319,11 +322,34 @@ async updateNotificationPreferences(notifications) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Failed to fetch repositories");
+      const error = new Error(data.message || `Failed to fetch repositories (${response.status})`);
+      error.status = response.status;
+      error.code = data.error || data.code;
+      throw error;
     }
 
     return data;
   },
+
+  async getRepositoryById(id) {
+    const response = await fetch(`http://localhost:5000/api/repositories/${id}`, {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error = new Error(data.message || `Failed to fetch repository (${response.status})`);
+      error.status = response.status;
+      error.code = data.error || data.code;
+      throw error;
+    }
+
+    return data;
+  },
+
   async addRepository({ url, branch }) {
     const response = await fetch("http://localhost:5000/api/repositories", {
       method: "POST",
@@ -340,11 +366,15 @@ async updateNotificationPreferences(notifications) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Failed to add repository");
+      const error = new Error(data.message || `Failed to add repository (${response.status})`);
+      error.status = response.status;
+      error.code = data.error || data.code;
+      throw error;
     }
 
     return data;
   },
+
   async updateRepository(id, { url, branch }) {
     const response = await fetch(
       `http://localhost:5000/api/repositories/${id}`,
@@ -364,7 +394,10 @@ async updateNotificationPreferences(notifications) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Failed to update repository");
+      const error = new Error(data.message || `Failed to update repository (${response.status})`);
+      error.status = response.status;
+      error.code = data.error || data.code;
+      throw error;
     }
 
     return data;
@@ -384,7 +417,34 @@ async updateNotificationPreferences(notifications) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Failed to delete repository");
+      const error = new Error(data.message || `Failed to delete repository (${response.status})`);
+      error.status = response.status;
+      error.code = data.error || data.code;
+      throw error;
+    }
+
+    return data;
+  },
+
+  async analyzeRepository(id) {
+    const response = await fetch(
+      `http://localhost:5000/api/repositories/${id}/analyze`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error = new Error(data.message || `Failed to analyze repository (${response.status})`);
+      error.status = response.status;
+      error.code = data.error || data.code;
+      throw error;
     }
 
     return data;
