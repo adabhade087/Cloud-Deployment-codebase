@@ -25,9 +25,10 @@ import {
 } from "lucide-react";
 
 export default function Repositories() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [repositories, setRepositories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasFetched, setHasFetched] = useState(false);
   const [error, setError] = useState("");
   const [editingRepo, setEditingRepo] = useState(null);
   const [editUrl, setEditUrl] = useState("");
@@ -70,6 +71,7 @@ export default function Repositories() {
         ? data.data
         : [];
       setRepositories(repos);
+      setHasFetched(true);
 
       // Pre-populate analysis cache from persisted repository fields
       const existingAnalysis = {};
@@ -95,6 +97,7 @@ export default function Repositories() {
     } catch (err) {
       console.error("Repository error:", err);
       setError(err.message);
+      setHasFetched(true);
       return [];
     } finally {
       setLoading(false);
@@ -180,6 +183,19 @@ export default function Repositories() {
   useEffect(() => {
     let isMounted = true;
 
+    if (authLoading) {
+      return;
+    }
+
+    if (!user || !user.id) {
+      setRepositories([]);
+      setSelectedRepoId(null);
+      setAnalysisMap({});
+      setAnalysisErrorMap({});
+      setLoading(false);
+      return;
+    }
+
     fetchRepositories().then((repos) => {
       if (!isMounted) return;
 
@@ -194,9 +210,14 @@ export default function Repositories() {
           if (analyzeParam === "true") {
             handleAnalyze(idNum);
             // Clean up url parameters without navigation
-            searchParams.delete("analyze");
-            setSearchParams(searchParams, { replace: true });
+            const newParams = new URLSearchParams(searchParams);
+            newParams.delete("analyze");
+            setSearchParams(newParams, { replace: true });
           }
+        } else if (repos.length > 0) {
+          setSelectedRepoId(repos[0].id);
+        } else {
+          setSelectedRepoId(null);
         }
       } else if (repos.length > 0) {
         // Auto-select first repo for preview
@@ -210,7 +231,7 @@ export default function Repositories() {
       isMounted = false;
       if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     };
-  }, [user?.id, user?.email]);
+  }, [user?.id, user?.email, authLoading]);
 
   const handleEdit = (repo) => {
     setEditingRepo(repo);
@@ -1167,7 +1188,7 @@ export default function Repositories() {
       )}
 
       {/* REPOSITORY LIST */}
-      {!loading && repositories.length > 0 && (
+      {!loading && hasFetched && repositories.length > 0 && (
         <div>
           <div
             style={{
@@ -1470,7 +1491,7 @@ export default function Repositories() {
       )}
 
       {/* EMPTY REPOSITORIES */}
-      {!loading && !error && repositories.length === 0 && (
+      {!loading && hasFetched && !error && repositories.length === 0 && (
         <div
           className="card"
           style={{

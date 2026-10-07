@@ -32,8 +32,9 @@ export default function AddRepository() {
       setSuccess("Repository added successfully! Analyzing repository...");
 
       setTimeout(() => {
-        if (data && data.repositoryId) {
-          navigate(`/repositories?selected=${data.repositoryId}&analyze=true`);
+        const newRepoId = data?.repositoryId || data?.repository?.id || data?.id;
+        if (newRepoId) {
+          navigate(`/repositories?selected=${newRepoId}&analyze=true`);
         } else {
           navigate("/repositories");
         }
