@@ -46,7 +46,7 @@ router.post("/resources", async (req, res) => {
 
     await db.query(
       `INSERT INTO infrastructure_resources (id, user_id, name, type, status, region, cpu, memory, cost)
-       VALUES (?, ?, ?, ?, 'running', ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, 'running', ?, ?, ?, ?)`,
       [resId, req.user.id, name, type, region, cpu, memory, cost]
     );
 

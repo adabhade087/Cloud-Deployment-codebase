@@ -1,7 +1,7 @@
 const express = require("express");
 const db = require("../config/db");
 const authMiddleware = require("../middleware/authMiddleware");
-const { detectProject } = require("../services/repositoryAnalyzer");
+const repositoryAnalyzer = require("../services/repositoryAnalyzer");
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -97,15 +97,13 @@ const checkGitHubBranch = async (url, branch) => {
   }
 };
 
-router.use(authMiddleware);
-
 // GET all repositories
 router.get("/", async (req, res) => {
   try {
     const [repositories] = await db.query(
-  "SELECT * FROM repositories WHERE user_id = ? ORDER BY id DESC",
-  [req.user.id],
-);
+      "SELECT * FROM repositories WHERE user_id = ? ORDER BY created_at DESC",
+      [req.user.id],
+    );
 
     res.status(200).json({
       success: true,
@@ -210,54 +208,46 @@ if (!branchCheck.exists) {
     });
   }
 });
-// ANALYZE repository
-router.post("/:id/analyze", async (req, res) => {
+// GET single repository by ID
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [repositories] = await db.query(
+    const [userRepo] = await db.query(
       "SELECT * FROM repositories WHERE id = ? AND user_id = ?",
       [id, req.user.id]
     );
 
-    if (repositories.length === 0) {
+    if (userRepo.length === 0) {
+      const [anyRepo] = await db.query(
+        "SELECT id FROM repositories WHERE id = ?",
+        [id]
+      );
+
+      if (anyRepo.length > 0) {
+        return res.status(403).json({
+          success: false,
+          error: "ACCESS_DENIED",
+          message: "You do not have permission to access this repository",
+        });
+      }
+
       return res.status(404).json({
         success: false,
+        error: "NOT_FOUND",
         message: "Repository not found",
-      });
-    }
-
-    const repository = repositories[0];
-
-    const analysis = await detectProject(
-      repository.url,
-      repository.branch
-    );
-
-    if (!analysis.template) {
-      return res.status(400).json({
-        success: false,
-        message: "Unable to detect a supported project type",
-        analysis,
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Repository analyzed successfully",
-      repository: {
-        id: repository.id,
-        url: repository.url,
-        branch: repository.branch,
-      },
-      analysis,
+      repository: userRepo[0],
     });
   } catch (error) {
-    console.error("Repository analysis error:", error);
-
+    console.error("GET repository by ID error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to analyze repository",
+      message: "Failed to fetch repository",
     });
   }
 });
@@ -276,13 +266,27 @@ router.put("/:id", async (req, res) => {
     }
 
     const [result] = await db.query(
-  "UPDATE repositories SET url = ?, branch = ? WHERE id = ? AND user_id = ?",
-  [url, branch, id, req.user.id],
-);
+      "UPDATE repositories SET url = ?, branch = ? WHERE id = ? AND user_id = ?",
+      [url, branch, id, req.user.id],
+    );
 
     if (result.affectedRows === 0) {
+      const [anyRepo] = await db.query(
+        "SELECT id FROM repositories WHERE id = ?",
+        [id]
+      );
+
+      if (anyRepo.length > 0) {
+        return res.status(403).json({
+          success: false,
+          error: "ACCESS_DENIED",
+          message: "You do not have permission to update this repository",
+        });
+      }
+
       return res.status(404).json({
         success: false,
+        error: "NOT_FOUND",
         message: "Repository not found",
       });
     }
@@ -307,13 +311,27 @@ router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
     const [result] = await db.query(
-  "DELETE FROM repositories WHERE id = ? AND user_id = ?",
-  [id, req.user.id],
-);
+      "DELETE FROM repositories WHERE id = ? AND user_id = ?",
+      [id, req.user.id],
+    );
 
     if (result.affectedRows === 0) {
+      const [anyRepo] = await db.query(
+        "SELECT id FROM repositories WHERE id = ?",
+        [id]
+      );
+
+      if (anyRepo.length > 0) {
+        return res.status(403).json({
+          success: false,
+          error: "ACCESS_DENIED",
+          message: "You do not have permission to delete this repository",
+        });
+      }
+
       return res.status(404).json({
         success: false,
+        error: "NOT_FOUND",
         message: "Repository not found",
       });
     }
@@ -328,6 +346,131 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete repository",
+    });
+  }
+});
+
+// ANALYZE repository
+router.post("/:id/analyze", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Verify repository exists and belongs to the authenticated user
+    const [userRepo] = await db.query(
+      "SELECT * FROM repositories WHERE id = ? AND user_id = ?",
+      [id, req.user.id]
+    );
+
+    if (userRepo.length === 0) {
+      // Check if it belongs to another user
+      const [anyRepo] = await db.query(
+        "SELECT id FROM repositories WHERE id = ?",
+        [id]
+      );
+
+      if (anyRepo.length > 0) {
+        return res.status(403).json({
+          success: false,
+          error: "ACCESS_DENIED",
+          message: "You do not have permission to analyze this repository",
+        });
+      }
+
+      return res.status(404).json({
+        success: false,
+        error: "NOT_FOUND",
+        message: "Repository not found",
+      });
+    }
+
+    const repository = userRepo[0];
+
+    // 2. Verify user has connected GitHub account
+    const [connections] = await db.query(
+      "SELECT github_access_token FROM user_github_connections WHERE user_id = ?",
+      [req.user.id]
+    );
+
+    if (connections.length === 0 || !connections[0].github_access_token) {
+      return res.status(400).json({
+        success: false,
+        error: "GITHUB_NOT_CONNECTED",
+        message:
+          "GitHub connection is required. Please connect your GitHub account in Settings to analyze repositories.",
+      });
+    }
+
+    const accessToken = connections[0].github_access_token;
+
+    // 3. Perform analysis via repositoryAnalyzer service
+    const result = await repositoryAnalyzer.analyzeGitHubRepository({
+      url: repository.url,
+      branch: repository.branch || "main",
+      accessToken,
+    });
+
+    if (!result.success) {
+      let status = 500;
+      if (result.error === "REPOSITORY_NOT_FOUND") status = 404;
+      else if (result.error === "REPOSITORY_ACCESS_DENIED") status = 403;
+      else if (result.error === "GITHUB_RATE_LIMIT") status = 429;
+      else if (result.error === "GITHUB_NOT_CONNECTED") status = 400;
+      else if (result.error === "GITHUB_API_FAILURE") status = 502;
+
+      return res.status(status).json({
+        success: false,
+        error: result.error,
+        message: result.message,
+      });
+    }
+
+    const { analysis } = result;
+
+    // 4. Persist analysis results to repository record
+    await db.query(
+      `UPDATE repositories SET
+        detected_language = ?,
+        detected_framework = ?,
+        project_type = ?,
+        package_manager = ?,
+        install_command = ?,
+        build_command = ?,
+        start_command = ?,
+        output_directory = ?,
+        has_dockerfile = ?,
+        deployable = ?,
+        analysis_status = ?,
+        analyzed_at = NOW()
+       WHERE id = ? AND user_id = ?`,
+      [
+        analysis.language,
+        analysis.framework,
+        analysis.projectType,
+        analysis.packageManager,
+        analysis.installCommand,
+        analysis.buildCommand,
+        analysis.startCommand,
+        analysis.outputDirectory,
+        analysis.hasDockerfile ? 1 : 0,
+        analysis.deployable ? 1 : 0,
+        analysis.deployable ? "analyzed" : "unsupported",
+        id,
+        req.user.id,
+      ]
+    );
+
+    // 5. Return structured result
+    return res.status(200).json({
+      success: true,
+      analysis,
+    });
+  } catch (error) {
+    console.error("POST repository analyze error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "ANALYSIS_FAILURE",
+      message: error.message || "Failed to analyze repository",
     });
   }
 });

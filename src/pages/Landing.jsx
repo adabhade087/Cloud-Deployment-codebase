@@ -41,8 +41,18 @@ export default function Landing() {
             >
               Services
             </a>
-            <a href="#about">About</a>
-            <a href="#docs">Documentation</a>
+            <a
+              href="#about"
+              onClick={(e) => {
+                e.preventDefault();
+                document
+                  .getElementById("about")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              About
+            </a>
+            <Link to="/help">Documentation</Link>
           </div>
           <div className="landing-nav-actions">
             <Link to="/login" className="btn btn-ghost">
@@ -67,7 +77,7 @@ export default function Landing() {
             </h1>
             <p className="hero-desc">
               A unified cloud-native DevOps platform for deployment pipelines,
-              infrastructure management, monitoring and cloud cost optimization.
+              infrastructure management, monitoring, and cloud cost optimization.
             </p>
             <div className="hero-actions">
               <Link to="/login" className="btn btn-primary btn-lg">
@@ -248,6 +258,7 @@ export default function Landing() {
           <div className="footer-links">
             <a href="#features">Features</a>
             <a href="#services">Services</a>
+            <Link to="/help">Documentation</Link>
             <Link to="/login">Login</Link>
           </div>
           <p className="footer-copy">

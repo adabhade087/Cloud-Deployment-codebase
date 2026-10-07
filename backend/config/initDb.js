@@ -246,6 +246,146 @@ async function initDb() {
       )
     `);
 
+    // 17. GitHub OAuth states
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS github_oauth_states (
+        state VARCHAR(128) PRIMARY KEY,
+        user_id INT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 18. User GitHub connections
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_github_connections (
+        user_id INT PRIMARY KEY,
+        github_username VARCHAR(100) NOT NULL,
+        github_access_token VARCHAR(255) NOT NULL,
+        connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 19. User preferences
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_preferences (
+        user_id INT PRIMARY KEY,
+        theme VARCHAR(20) DEFAULT 'dark',
+        language VARCHAR(10) DEFAULT 'en',
+        timezone VARCHAR(50) DEFAULT 'Asia/Kolkata',
+        default_landing_page VARCHAR(50) DEFAULT 'dashboard',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 20. User notification preferences
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_notification_preferences (
+        user_id INT PRIMARY KEY,
+        deployment_notifications BOOLEAN DEFAULT TRUE,
+        pipeline_notifications BOOLEAN DEFAULT TRUE,
+        security_notifications BOOLEAN DEFAULT TRUE,
+        system_notifications BOOLEAN DEFAULT TRUE,
+        email_notifications BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 21. Repositories table & analysis schema
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS repositories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NULL,
+        url VARCHAR(500) NOT NULL,
+        branch VARCHAR(100) NOT NULL DEFAULT 'main',
+        detected_language VARCHAR(50) NULL,
+        detected_framework VARCHAR(100) NULL,
+        project_type VARCHAR(50) NULL,
+        package_manager VARCHAR(50) NULL,
+        install_command VARCHAR(255) NULL,
+        build_command VARCHAR(255) NULL,
+        start_command VARCHAR(255) NULL,
+        output_directory VARCHAR(100) NULL,
+        has_dockerfile BOOLEAN DEFAULT FALSE,
+        deployable BOOLEAN DEFAULT FALSE,
+        analysis_status VARCHAR(50) DEFAULT 'unverified',
+        analyzed_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_user (user_id)
+      )
+    `);
+
+    const repoAnalysisColumns = [
+      { name: "detected_language", type: "VARCHAR(50) NULL" },
+      { name: "detected_framework", type: "VARCHAR(100) NULL" },
+      { name: "project_type", type: "VARCHAR(50) NULL" },
+      { name: "package_manager", type: "VARCHAR(50) NULL" },
+      { name: "install_command", type: "VARCHAR(255) NULL" },
+      { name: "build_command", type: "VARCHAR(255) NULL" },
+      { name: "start_command", type: "VARCHAR(255) NULL" },
+      { name: "output_directory", type: "VARCHAR(100) NULL" },
+      { name: "has_dockerfile", type: "BOOLEAN DEFAULT FALSE" },
+      { name: "deployable", type: "BOOLEAN DEFAULT FALSE" },
+      { name: "analysis_status", type: "VARCHAR(50) DEFAULT 'unverified'" },
+      { name: "analyzed_at", type: "TIMESTAMP NULL" },
+    ];
+
+    for (const col of repoAnalysisColumns) {
+      try {
+        const [existing] = await db.query(
+          `SHOW COLUMNS FROM repositories LIKE '${col.name}'`
+        );
+        if (existing.length === 0) {
+          await db.query(
+            `ALTER TABLE repositories ADD COLUMN ${col.name} ${col.type}`
+          );
+        }
+      } catch (colErr) {
+        console.warn(`Notice checking repositories column ${col.name}:`, colErr.message);
+      }
+    }
+
+    // Controlled Migration: Process legacy repositories where user_id IS NULL
+    try {
+      const [nullRepos] = await db.query(
+        "SELECT id, url, branch FROM repositories WHERE user_id IS NULL"
+      );
+
+      for (const legacyRepo of nullRepos) {
+        // Check if there is an exact user-owned record for the same URL
+        const [matchingUserRepos] = await db.query(
+          "SELECT user_id FROM repositories WHERE url = ? AND user_id IS NOT NULL LIMIT 1",
+          [legacyRepo.url]
+        );
+
+        if (matchingUserRepos.length > 0) {
+          // Check if user already has an active entry for this repo URL
+          const targetUserId = matchingUserRepos[0].user_id;
+          const [userAlreadyHas] = await db.query(
+            "SELECT id FROM repositories WHERE user_id = ? AND url = ? AND id != ?",
+            [targetUserId, legacyRepo.url, legacyRepo.id]
+          );
+
+          if (userAlreadyHas.length > 0) {
+            // Duplicate legacy entry: clean up redundant unassigned record
+            await db.query("DELETE FROM repositories WHERE id = ?", [legacyRepo.id]);
+          } else {
+            // Safe backfill: assign legacy record to confirmed owner
+            await db.query("UPDATE repositories SET user_id = ? WHERE id = ?", [
+              targetUserId,
+              legacyRepo.id,
+            ]);
+          }
+        }
+        // If ownership cannot be determined from user history, leave user_id IS NULL (unassigned)
+      }
+    } catch (migErr) {
+      console.warn("Legacy repository migration notice:", migErr.message);
+    }
+
     // ==========================================
     // SEED DEFAULT DEMO DATA IF TABLES ARE EMPTY
     // ==========================================

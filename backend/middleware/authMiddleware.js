@@ -15,6 +15,13 @@ const authMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    if (!decoded || !decoded.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token payload",
+      });
+    }
+
     req.user = decoded;
 
     next();

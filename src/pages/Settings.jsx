@@ -390,7 +390,7 @@ useEffect(() => {
       <div className="settings-placeholder">
         <span>Coming soon</span>
         <p>
-          This section will be connected to the CloudForge
+          This section will be connected to the NexusCloud
           backend when its functionality is implemented.
         </p>
       </div>
@@ -405,7 +405,7 @@ useEffect(() => {
 )}
     <div className="settings-card-header">
       <h2>Preferences</h2>
-      <p>Customize your CloudForge experience.</p>
+      <p>Customize your NexusCloud experience.</p>
     </div>
 
     <div className="settings-field">
@@ -629,7 +629,7 @@ const renderNotifications = () => (
             System notifications
           </span>
           <p className="notification-description">
-            Receive updates about CloudForge system events.
+            Receive updates about NexusCloud system events.
           </p>
         </div>
 
@@ -654,7 +654,7 @@ const renderNotifications = () => (
             Email notifications
           </span>
           <p className="notification-description">
-            Receive selected CloudForge notifications by email.
+            Receive selected NexusCloud notifications by email.
           </p>
         </div>
 
@@ -832,7 +832,7 @@ const renderNotifications = () => (
     <section className="settings-card">
       <div className="settings-card-header">
         <h2>Personal API Access Tokens</h2>
-        <p>Generate API tokens to authenticate with the CloudForge CLI, SDK, and CI/CD pipelines.</p>
+        <p>Generate API tokens to authenticate with the NexusCloud CLI, SDK, and CI/CD pipelines.</p>
       </div>
 
       {apiMessage && <div className="settings-alert settings-success">{apiMessage}</div>}
@@ -951,7 +951,7 @@ const renderNotifications = () => (
       {dangerMessage && <div className="settings-alert settings-error">{dangerMessage}</div>}
 
       <div style={{ background: "rgba(239, 68, 68, 0.05)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "10px", padding: "18px" }}>
-        <h3 style={{ fontSize: "16px", color: "#ef4444", margin: "0 0 8px 0" }}>Delete CloudForge Account</h3>
+        <h3 style={{ fontSize: "16px", color: "#ef4444", margin: "0 0 8px 0" }}>Delete NexusCloud Account</h3>
         <p style={{ color: "#94a3b8", fontSize: "13px", lineHeight: "1.5", margin: "0 0 16px 0" }}>
           Once you delete your account, there is no going back. All your connected repositories, deployment history, preferences, and API access tokens will be permanently removed.
         </p>

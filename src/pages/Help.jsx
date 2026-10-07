@@ -9,15 +9,15 @@ const FAQS = [
     items: [
       {
         q: "How do I connect my GitHub repository?",
-        a: "Go to Repositories → Add Repository, paste your GitHub repo URL, and click Connect. CloudForge will automatically detect your project language and prepare the deployment pipeline.",
+        a: "Go to Repositories → Add Repository, paste your GitHub repo URL, and click Connect. NexusCloud will automatically detect your project language and prepare the deployment pipeline.",
       },
       {
-        q: "What languages and frameworks does CloudForge support?",
-        a: "CloudForge supports Node.js, Python, React, Vue, Angular, Django, FastAPI, and more. Language detection is automatic based on your project files (package.json, requirements.txt, etc.).",
+        q: "What languages and frameworks does NexusCloud support?",
+        a: "NexusCloud supports Node.js, Python, React, Vue, Angular, Django, FastAPI, and more. Language detection is automatic based on your project files (package.json, requirements.txt, etc.).",
       },
       {
         q: "How long does a first deployment take?",
-        a: "First deployments typically take 3–5 minutes as CloudForge builds your Docker image and provisions resources. Subsequent deployments are faster due to build caching.",
+        a: "First deployments typically take 3–5 minutes as NexusCloud builds your Docker image and provisions resources. Subsequent deployments are faster due to build caching.",
       },
     ],
   },
@@ -34,7 +34,7 @@ const FAQS = [
       },
       {
         q: "Can I deploy to multiple environments?",
-        a: "Yes. CloudForge supports dev, staging, and production environments. Go to Deployment → Environments to manage them.",
+        a: "Yes. NexusCloud supports dev, staging, and production environments. Go to Deployment → Environments to manage them.",
       },
     ],
   },
@@ -43,7 +43,7 @@ const FAQS = [
     items: [
       {
         q: "How do I set up a CI/CD pipeline?",
-        a: "CloudForge auto-generates a pipeline when you connect a repository. You can customize stages (build, test, deploy) in the Pipelines section.",
+        a: "NexusCloud auto-generates a pipeline when you connect a repository. You can customize stages (build, test, deploy) in the Pipelines section.",
       },
       {
         q: "How do I view pipeline build logs?",
@@ -89,14 +89,14 @@ const QUICK_LINKS = [
     icon: "🐛",
     label: "Report a Bug",
     desc: "Let us know about any issue you face",
-    href: "mailto:adityabhade087@gmail.com?subject=CloudForge Bug Report",
+    href: "mailto:adityabhade087@gmail.com?subject=NexusCloud Bug Report",
     internal: false,
   },
   {
     icon: "📧",
     label: "Contact Support",
     desc: "Email the team for help or questions",
-    href: "mailto:adityabhade087@gmail.com?subject=CloudForge Support",
+    href: "mailto:adityabhade087@gmail.com?subject=NexusCloud Support",
     internal: false,
   },
 ];
@@ -452,7 +452,7 @@ export default function Help() {
       <div style={s.card}>
         <h2 style={s.sectionTitle}>Still need help?</h2>
         <p style={{ ...s.mutedText, marginBottom: "20px" }}>
-          CloudForge is an internal developer platform. For bugs, feature requests,
+          NexusCloud is an internal developer platform. For bugs, feature requests,
           or questions, open a GitHub issue or reach out to the project maintainer directly.
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>

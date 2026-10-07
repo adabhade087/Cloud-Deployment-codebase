@@ -29,11 +29,15 @@ export default function AddRepository() {
         branch: branch.trim(),
       });
 
-      setSuccess("Repository added successfully!");
+      setSuccess("Repository added successfully! Analyzing repository...");
 
       setTimeout(() => {
-        navigate("/repositories");
-      }, 800);
+        if (data && data.repositoryId) {
+          navigate(`/repositories?selected=${data.repositoryId}&analyze=true`);
+        } else {
+          navigate("/repositories");
+        }
+      }, 600);
     } catch (error) {
       console.error("Add repository error:", error);
       setError(error.message);
@@ -48,7 +52,7 @@ export default function AddRepository() {
         <h1 className="page-title">Add Repository</h1>
 
         <p className="page-subtitle">
-          Connect a GitHub repository to CloudForge.
+          Connect a GitHub repository to NexusCloud.
         </p>
       </div>
 

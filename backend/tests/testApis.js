@@ -146,6 +146,122 @@ async function runTests() {
     const reposRes = await request("GET", "/api/repositories");
     assert("GET /api/repositories", reposRes.status === 200 && Array.isArray(reposRes.body.repositories));
 
+    // 4.1 POST /api/repositories (add real public repo for analysis testing)
+    const addRepoRes = await request("POST", "/api/repositories", {
+      url: "https://github.com/facebook/react",
+      branch: "main",
+    });
+    const repoAdded = addRepoRes.status === 201 && !!addRepoRes.body.repositoryId;
+    assert("POST /api/repositories (add repo)", repoAdded);
+    const testRepoId = repoAdded ? addRepoRes.body.repositoryId : null;
+
+    // 4.2 POST /api/repositories/:id/analyze — without GitHub connection → 400
+    if (testRepoId) {
+      const analyzeNoGithubRes = await request("POST", `/api/repositories/${testRepoId}/analyze`);
+      assert(
+        "POST /api/repositories/:id/analyze (no GitHub → 400)",
+        analyzeNoGithubRes.status === 400 &&
+          analyzeNoGithubRes.body.error === "GITHUB_NOT_CONNECTED"
+      );
+    }
+
+    // 4.3 POST /api/repositories/:nonexistent_id/analyze → 404
+    const analyzeNotFoundRes = await request("POST", "/api/repositories/999999/analyze");
+    assert(
+      "POST /api/repositories/:id/analyze (not found → 404)",
+      analyzeNotFoundRes.status === 404
+    );
+
+    // 4.4 POST /api/repositories/:id/analyze — unauthenticated → 401
+    const analyzeUnauthRes = await request(
+      "POST",
+      testRepoId ? `/api/repositories/${testRepoId}/analyze` : "/api/repositories/999/analyze",
+      null,
+      { Authorization: "" }
+    );
+    assert(
+      "POST /api/repositories/:id/analyze (unauthenticated → 401)",
+      analyzeUnauthRes.status === 401
+    );
+
+    // 4.5 User B multi-user isolation testing
+    const userBEmail = `userB_${Date.now()}@example.com`;
+    await request("POST", "/api/auth/register", {
+      name: "User B",
+      email: userBEmail,
+      password: "TestPassword@123",
+      role: "developer",
+    });
+    const userBLoginRes = await request("POST", "/api/auth/login", {
+      email: userBEmail,
+      password: "TestPassword@123",
+    });
+    const userBToken = userBLoginRes.body.token;
+
+    // User B fetches repositories (should NOT see User A's repo)
+    const userBReposRes = await request("GET", "/api/repositories", null, {
+      Authorization: `Bearer ${userBToken}`,
+    });
+    const userBRepos = userBReposRes.body.repositories || [];
+    const hasUserARepo = userBRepos.some((r) => r.id === testRepoId);
+    assert(
+      "GET /api/repositories (User B cannot see User A's repository)",
+      userBReposRes.status === 200 && !hasUserARepo
+    );
+
+    // User B attempts to analyze User A's repository (should return 403)
+    if (testRepoId) {
+      const userBGetRes = await request(
+        "GET",
+        `/api/repositories/${testRepoId}`,
+        null,
+        { Authorization: `Bearer ${userBToken}` }
+      );
+      assert(
+        "GET /api/repositories/:id (User B access User A repo → 403)",
+        userBGetRes.status === 403 && userBGetRes.body.error === "ACCESS_DENIED"
+      );
+
+      const userBAnalyzeRes = await request(
+        "POST",
+        `/api/repositories/${testRepoId}/analyze`,
+        null,
+        { Authorization: `Bearer ${userBToken}` }
+      );
+      assert(
+        "POST /api/repositories/:id/analyze (User B analyze User A repo → 403)",
+        userBAnalyzeRes.status === 403 && userBAnalyzeRes.body.error === "ACCESS_DENIED"
+      );
+
+      const userBPutRes = await request(
+        "PUT",
+        `/api/repositories/${testRepoId}`,
+        { url: "https://github.com/facebook/react", branch: "main" },
+        { Authorization: `Bearer ${userBToken}` }
+      );
+      assert(
+        "PUT /api/repositories/:id (User B update User A repo → 403)",
+        userBPutRes.status === 403 && userBPutRes.body.error === "ACCESS_DENIED"
+      );
+
+      const userBDeleteRes = await request(
+        "DELETE",
+        `/api/repositories/${testRepoId}`,
+        null,
+        { Authorization: `Bearer ${userBToken}` }
+      );
+      assert(
+        "DELETE /api/repositories/:id (User B delete User A repo → 403)",
+        userBDeleteRes.status === 403 && userBDeleteRes.body.error === "ACCESS_DENIED"
+      );
+
+      const ownerGetRes = await request("GET", `/api/repositories/${testRepoId}`);
+      assert(
+        "GET /api/repositories/:id (Owner access → 200)",
+        ownerGetRes.status === 200 && ownerGetRes.body.repository.id === testRepoId
+      );
+    }
+
     // 5. Deployments
     const depListRes = await request("GET", "/api/deployments");
     assert("GET /api/deployments", depListRes.status === 200 && Array.isArray(depListRes.body.deployments));
