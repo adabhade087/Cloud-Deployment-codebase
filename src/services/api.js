@@ -1,4 +1,6 @@
 // API service layer — mock implementations ready for backend replacement
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "/api";
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -29,7 +31,7 @@ const getAuthHeaders = () => {
 
 export const api = {
   async login(email, password) {
-    const response = await fetch("http://localhost:5000/api/auth/login", {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, { 
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,8 +51,8 @@ export const api = {
     return data;
   },
   async changePassword(currentPassword, newPassword) {
-  const response = await fetch(
-    "http://localhost:5000/api/users/me/password",
+    const response = await fetch(
+  `${API_BASE_URL}/users/me/password`,
     {
       method: "PUT",
       headers: {
@@ -75,7 +77,7 @@ export const api = {
 },
   async getPreferences() {
     const response = await fetch(
-      "http://localhost:5000/api/users/preferences",
+  `${API_BASE_URL}/users/preferences`,
       {
         headers: {
           ...getAuthHeaders(),
@@ -96,7 +98,7 @@ export const api = {
 
   async updatePreferences(preferences) {
     const response = await fetch(
-      "http://localhost:5000/api/users/preferences",
+  `${API_BASE_URL}/users/preferences`,
       {
         method: "PUT",
         headers: {
@@ -119,7 +121,7 @@ export const api = {
   },
   async getNotificationPreferences() {
   const response = await fetch(
-    "http://localhost:5000/api/users/notifications",
+  `${API_BASE_URL}/users/notifications`,
     {
       headers: {
         ...getAuthHeaders(),
@@ -140,7 +142,7 @@ export const api = {
 
 async updateNotificationPreferences(notifications) {
   const response = await fetch(
-    "http://localhost:5000/api/users/notifications",
+  `${API_BASE_URL}/users/notifications`,
     {
       method: "PUT",
       headers: {
@@ -174,7 +176,7 @@ async updateNotificationPreferences(notifications) {
     }
 
     if (password.length < 8) throw new Error("Password must be at least 8 characters");
-    const response = await fetch("http://localhost:5000/api/auth/register", {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -196,7 +198,7 @@ async updateNotificationPreferences(notifications) {
     return await this.login(email, password);
   },
     async getProfile() {
-    const response = await fetch("http://localhost:5000/api/users/me", {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -212,7 +214,7 @@ async updateNotificationPreferences(notifications) {
   },
   async updateProfile(name, email) {
   const response = await fetch(
-    "http://localhost:5000/api/users/me",
+  `${API_BASE_URL}/users/me`,
     {
       method: "PUT",
       headers: {
@@ -235,7 +237,7 @@ async updateNotificationPreferences(notifications) {
   return data;
 },
   async getGitHubConnection() {
-    const response = await fetch("http://localhost:5000/api/users/github", {
+    const response = await fetch(`${API_BASE_URL}/users/github`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -247,7 +249,7 @@ async updateNotificationPreferences(notifications) {
     return data;
   },
   async disconnectGitHub() {
-    const response = await fetch("http://localhost:5000/api/users/github", {
+    const response = await fetch(`${API_BASE_URL}/users/github`, {
       method: "DELETE",
       headers: {
         ...getAuthHeaders(),
@@ -260,7 +262,7 @@ async updateNotificationPreferences(notifications) {
     return data;
   },
   async getApiTokens() {
-    const response = await fetch("http://localhost:5000/api/users/api-tokens", {
+    const response = await fetch(`${API_BASE_URL}/users/api-tokens`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -272,7 +274,7 @@ async updateNotificationPreferences(notifications) {
     return data;
   },
   async createApiToken(name) {
-    const response = await fetch("http://localhost:5000/api/users/api-tokens", {
+    const response = await fetch(`${API_BASE_URL}/users/api-tokens`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -287,7 +289,7 @@ async updateNotificationPreferences(notifications) {
     return data;
   },
   async revokeApiToken(id) {
-    const response = await fetch(`http://localhost:5000/api/users/api-tokens/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/users/api-tokens/${id}`, {
       method: "DELETE",
       headers: {
         ...getAuthHeaders(),
@@ -300,7 +302,7 @@ async updateNotificationPreferences(notifications) {
     return data;
   },
   async deleteAccount() {
-    const response = await fetch("http://localhost:5000/api/users/me", {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
       method: "DELETE",
       headers: {
         ...getAuthHeaders(),
@@ -313,7 +315,7 @@ async updateNotificationPreferences(notifications) {
     return data;
   },
   async getRepositories() {
-    const response = await fetch("http://localhost:5000/api/repositories", {
+    const response = await fetch(`${API_BASE_URL}/repositories`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -332,7 +334,7 @@ async updateNotificationPreferences(notifications) {
   },
 
   async getRepositoryById(id) {
-    const response = await fetch(`http://localhost:5000/api/repositories/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/repositories/${id}`, {
       headers: {
         ...getAuthHeaders(),
       },
@@ -351,7 +353,7 @@ async updateNotificationPreferences(notifications) {
   },
 
   async addRepository({ url, branch }) {
-    const response = await fetch("http://localhost:5000/api/repositories", {
+    const response = await fetch(`${API_BASE_URL}/repositories`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -377,7 +379,7 @@ async updateNotificationPreferences(notifications) {
 
   async updateRepository(id, { url, branch }) {
     const response = await fetch(
-      `http://localhost:5000/api/repositories/${id}`,
+    `${API_BASE_URL}/repositories/${id}`,
       {
         method: "PUT",
         headers: {
@@ -405,7 +407,7 @@ async updateNotificationPreferences(notifications) {
 
   async deleteRepository(id) {
     const response = await fetch(
-      `http://localhost:5000/api/repositories/${id}`,
+     `${API_BASE_URL}/repositories/${id}`,
       {
         method: "DELETE",
         headers: {
@@ -428,7 +430,7 @@ async updateNotificationPreferences(notifications) {
 
   async analyzeRepository(id) {
     const response = await fetch(
-      `http://localhost:5000/api/repositories/${id}/analyze`,
+       `${API_BASE_URL}/repositories/${id}/analyze`,
       {
         method: "POST",
         headers: {
@@ -449,23 +451,44 @@ async updateNotificationPreferences(notifications) {
 
     return data;
   },
+   async getDeployments() {
+  const response = await fetch(`${API_BASE_URL}/deployments`, {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || `Failed to fetch deployments (${response.status})`
+    );
+  }
+
+  return data;
+},
 
   async deploy(config) {
-    await delay(2000);
-    return {
-      success: true,
-      deployment: {
-        id: `dep-${Date.now()}`,
-        project: config.project,
-        environment: config.environment,
-        version: config.version,
-        branch: config.branch,
-        status: "success",
-        deployedAt: new Date().toLocaleString(),
-        deployedBy: "Anuj M.",
-      },
-    };
-  },
+  const response = await fetch(`${API_BASE_URL}/deployments`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify(config),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || `Deployment failed (${response.status})`
+    );
+  }
+
+  return data;
+},
 
   async rollback(project, version) {
     await delay(1500);

@@ -189,7 +189,7 @@ router.post("/", async (req, res) => {
     await db.query(
       `INSERT INTO deployments
         (id, user_id, project, environment, version, branch, status, deployed_at, deployed_by)
-       VALUES (?, ?, ?, ?, ?, ?, 'success', ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, 'queued', ?, ?)`,
       [deployId, req.user.id, project, environment, version, branch, nowStr, deployedBy]
     );
 
@@ -229,14 +229,14 @@ router.post("/", async (req, res) => {
       environment,
       version,
       branch,
-      status: "success",
+      status: "queued",
       deployedAt: nowStr,
       deployedBy,
     };
 
     res.status(201).json({
       success: true,
-      message: "Deployment completed successfully",
+      message: "Deployment queued successfully",
       deployment,
     });
   } catch (error) {
