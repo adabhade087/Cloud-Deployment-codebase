@@ -511,7 +511,7 @@ async updateNotificationPreferences(notifications) {
     await delay(2500);
     return {
       success: true,
-      message: `Terraform apply completed for ${configName}`,
+            message: `Terraform apply completed for ${configName}`,
     };
   },
 

@@ -8,7 +8,7 @@ const mainNav = [
   { path: "/pipelines", label: "Pipelines", icon: "pipeline" },
   { path: "/infrastructure", label: "Infrastructure", icon: "infra" },
   { path: "/monitoring", label: "Monitoring", icon: "monitor" },
-  { path: "/repositories/add", label: "Repositories", icon: "repo" },
+  { path: "/repositories", label: "Repositories", icon: "repo" },
   { path: "/cost", label: "Cost Estimation", icon: "cost" },
 ];
 

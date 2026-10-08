@@ -4,8 +4,18 @@ import { api } from "../services/api";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem("nexuscloud_auth");
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        localStorage.removeItem("nexuscloud_auth");
+      }
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("nexuscloud_auth");
@@ -15,7 +25,10 @@ export function AuthProvider({ children }) {
         setUser(JSON.parse(stored));
       } catch {
         localStorage.removeItem("nexuscloud_auth");
+        setUser(null);
       }
+    } else {
+      setUser(null);
     }
 
     setLoading(false);
